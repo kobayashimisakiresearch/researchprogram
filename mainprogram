@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>卒業研究プログラム</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: white; /* 背景色を白に */
+    color: black; /* 文字色を黒に */
+  }
+  .question{
+    display: none;
+    background-color: inherit; /* 背景色を親要素に合わせる */
+    color: inherit; /* 文字色を親要素に合わせる */
+    padding: 20px;
+    font-size: 100px; /* 個別要素の文字を大きく */
+    text-align: center; /* テキストを中央に */
+  }
+  .start-menu {
+    display: none;
+    flex-direction: column;
+    background-color: inherit; /* 背景色を親要素に合わせる */
+    padding: 20px;
+    text-align: center; /* テキストを中央に */
+  }
+  .visible {
+    display: block;
+  }
+  #countdown {
+    font-size: 0.00001px; /* カウントダウンの文字を大きく */
+    color: inherit;
+  }
+  button {
+    font-size: 50px; /* ボタンの文字を大きく */
+    margin: 10px;
+  }
+  .large-input {
+    font-size: 80px; /* テキストボックスの文字を大きく */
+    width: 300px; /* テキストボックスの幅を大きく */
+    height: 100px; /* テキストボックスの高さを大きく */
+  }
+  .custom-input {
+    background-color: inherit; /* テキストボックスの背景色 */
+    color: inherit; /* テキストの色 */
+  }
+  #white-black{
+    background-color: white;
+    color: black;
+    border: 2px solid black
+  }
+  #black-white{
+    background-color: black;
+    color: white;
+    border: 2px solid white
+  }
+  #white-green{
+    background-color: white;
+    color: green;
+    border: 2px solid green
+  }
+  #black-green{
+    background-color: black;
+    color: green;
+    border: 2px solid green
+  }
+  .frac_bar {
+    padding: 0;
+    border-bottom-width: 4px;
+    border-bottom-style: solid;
+    border-bottom-color: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div id="start-menu" class="start-menu visible">
+  <button id="white-black" class="color-select-button" onclick="changeTheme('white', 'black')">白背景黒文字</button><br>
+  <button id="black-white" class="color-select-button" onclick="changeTheme('black', 'white')">黒背景白文字</button><br>
+  <button id="white-green" class="color-select-button" onclick="changeTheme('white', 'green')">白背景緑文字</button><br>
+  <button id="black-green" class="color-select-button" onclick="changeTheme('black', 'green')">黒背景緑文字</button><br><br>
+  <button onclick="startProgram()">開始</button>
+</div>
+
+<div id="question-container" class="question">
+  <p id="question-text"></p>
+</div>
+
+<script>
+
+  const question_interval = 10000;  // 問題時間[ms]
+  const shuffle = false // true:シャッフルあり, false:シャッフルなし
+
+  const questions_wb = [
+  '9+6+6-2-8+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+1-6-3+2-1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+4+3-5-4-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '9+4+7-2+8-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '9-6-3+4+2+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+6-2+3-9+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7-2+1-5+3-5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+3+4-7-2-4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7-6+3+2-1-2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+6-2+3-5+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+2+1-8+4-5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+3-4+2+3+6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+3-1+2-4+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6+2+9+1-5+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+7-2+1-6+9=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+3-5+2-7+9=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '9+4-1+5-2-7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+2-6+4-3-8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5-2+4-3+1+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8-4+6-3+5+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+5-2+7-6+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6+1-5+2-3-8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+8-4+5-7+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+3-2+1-4+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+4-1+3-2-5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+
+];
+
+  const questions_bw = [
+  '7+3-5-2-5+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4-2+6+3-5+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8-1+2-3+4+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+2+7-4+1-3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-3+2-1+8+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+3-2+1+7-5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7-4+3-1+6+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+1-6+4-3+8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+5+2-7+1-4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-4-3+1-7+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+2-6+5-1+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5-3+4-2+7+6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+7-2+3-5+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-1+5-3+8+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+6-4+2-1+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+4-5+1+2-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5-2+3-4+7+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-5-7+2+3-4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+4-3+6-1+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3-5+8-1+2+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+3-6+7-2+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8-3+1+5-6+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+6-2+4-3+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '1+7-5+2+4-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-2+3+1-7+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  
+];
+
+  const questions_wg = [
+  '4-3+7-1+6+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+2-5+8-1+4 =<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+5-3+1+2-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6+1-4+3-5-8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2-7+5+1+3-4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8-4+2+3-6+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+7-2+4-1+6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4-6+3+2+1-5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6+2-1+5-7+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+8-2+6-1+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7-5+1+3-4+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5-1+7-3+4+6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+6-5+3+2-4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+5-3+1-6-7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+1-7+5-6+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+7-2+4-5+8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-3+5+1-2+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+8-1+3-4+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2-6+7-1+3+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+6-2-5-7-3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '1+5-3+8-4+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+2-6+3+4-1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-7+5+3-2+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+3-4+2-5+7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+6-1+7-3+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+
+
+  ];
+
+  const questions_bg = [
+  '5+4-7+1+2-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+2-4+5-1+8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7-6+4-3+5+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '1+8-5+2+3-7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+7-6+5-1+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6+3-2+7-4+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+8-5+4-3+6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5-7+2+6-4+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+6-1+3+2-7=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+5-2+8-1+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7-4+5-3+1+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '1+2-7+4+3-6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8+5-6+2-4+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4+3-1+6-5+8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-5+7-2+4+3=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+1-3+5-6-8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+7-4+3-1+6=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3-2-8+1-6+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '7+4-3+5-6+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '8-1+6-4+3+2=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '5+6-7+3-2+8=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '4-8+1+7-3+5=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '2+5-4+6+3-1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '6-3+7+2-5+4=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">',
+  '3+4-2+5-7+1=<input type="text" oninput="answerChange()" id="answer" class="large-input custom-input" name="answer" required minlength="1" size="10">'
+
+];
+
+const answers_key_wb = [16,1,-1,20,11,5,-1,2,3,11,1,18,10,14,13,10,8,-4,6,19,14,-7,7,12,4];
+const answers_key_bw = [-1,13,15,8,17,8,13,9,0,-5,11,17,8,17,11,3,10,-5,15,11,7,7,17,3,-4];
+const answers_key_wg = [15,11,6,-7,0,4,19,-1,9,21,4,18,10,-8,0,15,11,18,10,-7,9,9,6,11,15];
+const answers_key_bg = [-1,13,9,2,12,11,12,5,7,17,8,-3,8,15,13,-9,16,-8,8,14,13,6,11,11,4];
+// 他のテーマの問題の正解も同様に設定
+
+  let questions = questions_wb
+  let q_index = Array.from(Array(questions.length).keys()); // [0, 1, ...]
+
+
+  let globalBackgroundColor = 'white'
+  let globalTextColor = 'black'
+  document.getElementById(globalBackgroundColor + "-" + globalTextColor ).style.borderColor = "red";
+
+  let currentIndex = 0;
+  const answers = [];
+  let intervalId;
+  let startTime;
+  const answerTimes = []
+
+  function startProgram() {
+    document.getElementById('start-menu').classList.remove('visible');
+    startCountdown();
+  }
+
+  function startCountdown() {
+    let countdown = 20;
+    document.getElementById('question-container').innerHTML = `<p id="countdown">${countdown}</p>`;
+    document.getElementById('question-container').classList.add('visible');
+
+    const countdownInterval = setInterval(() => {
+      countdown -= 1;
+      document.getElementById('countdown').textContent = countdown;
+
+      if (countdown === 0) {
+        clearInterval(countdownInterval);
+        showNextQuestion();
+        intervalId = setInterval(showNextQuestion, question_interval);
+      }
+    }, 1000);
+  }
+
+  function showNextQuestion() {
+    let answerElement = document.getElementById('answer');
+    if (answerElement) {
+      answers.push(answerElement.value);
+    }
+    const q_num = q_index[currentIndex];
+    document.getElementById('question-container').innerHTML = `<p id="question-text">${questions[q_num]}</p>`;
+    answerElement = document.getElementById('answer')
+    if( answerElement ){
+      answerElement.focus()
+      startTime = new Date(); // 解答開始時刻
+      answerTimes[currentIndex] = null;
+    }
+
+    currentIndex++;
+
+    if (currentIndex > questions.length) {
+      saveAnswersToFile();
+      clearInterval(intervalId);
+      endProgram();
+    }
+
+  }
+
+  function checkAnswer(userAnswer, correctAnswer) {
+  return parseInt(userAnswer) === correctAnswer ? 'TRUE' : 'FALSE';
+}
+
+
+function saveAnswersToFile() {
+  const timeText = nowText();
+  const filename = timeText + "-" + globalBackgroundColor + "-" + globalTextColor + "-answers.csv";
+
+  // 配色に応じて正しい正解リストを選択する
+  let correctAnswers;
+  if (globalBackgroundColor === 'white' && globalTextColor === 'black') {
+    correctAnswers = answers_key_wb;
+  } else if (globalBackgroundColor === 'black' && globalTextColor === 'white') {
+    correctAnswers = answers_key_bw;
+  } else if (globalBackgroundColor === 'white' && globalTextColor === 'green') {
+    correctAnswers = answers_key_wg;
+  } else if (globalBackgroundColor === 'black' && globalTextColor === 'green') {
+    correctAnswers = answers_key_bg;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8," + "No,Question,Answer,Correct Answer,Result,Time[s],Background Color,Text Color\n";
+
+  csvContent += answers.map((answer, index) => {
+    const correctAnswer = correctAnswers[index];  // 配色に応じた正解リストを使用
+    const result = checkAnswer(answer, correctAnswer);
+    return `${index+1},${q_index[index] + 1},${answer},${correctAnswer},${result},${answerTimes[index]},${globalBackgroundColor},${globalTextColor}`;
+  }).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  const downloadLink = document.createElement("a");
+  downloadLink.setAttribute("href", encodedUri);
+  downloadLink.setAttribute("download", filename);
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+function endProgram() {
+    clearInterval(intervalId);
+    document.getElementById('question-container').classList.remove('visible');
+    document.getElementById('start-menu').classList.add('visible');
+    currentIndex = 0;
+    answers.length = 0; // reset answers
+    answerTimes.length = 0; // reset answerTimes as well
+}
+
+
+  
+  function answerChange(){
+    const delay_sec = (new Date() - startTime)/1000;
+    answerTimes[currentIndex-1] = delay_sec;
+  }
+
+  function changeTheme(backgroundColor, textColor) {
+    document.body.style.backgroundColor = backgroundColor;
+    document.body.style.color = textColor;
+
+    const inputs = document.querySelectorAll('.large-input');
+    inputs.forEach(input => {
+      input.style.backgroundColor = backgroundColor;
+      input.style.color = textColor === textColor;
+    });
+
+    const buttons = document.querySelectorAll(".color-select-button")
+    buttons.forEach( b => {
+      b.style.borderColor = b.style.color;
+    });
+
+    const clickedButton = document.getElementById( backgroundColor + "-" + textColor)
+    clickedButton.style.borderColor = 'red';
+
+    if( backgroundColor == 'white' && textColor == 'black')
+      questions = questions_wb;
+    else if( backgroundColor == 'black' && textColor == 'white' )
+      questions = questions_bw;
+    else if( backgroundColor == 'white' && textColor == 'green' )
+      questions = questions_wg;
+    else if( backgroundColor == 'black' && textColor == 'green' )
+      questions = questions_bg;
+
+    let q_index = Array.from(Array(questions.length).keys()); // [0, 1, ...]
+    if( shuffle )
+      arrayShuffle(q_index);
+
+
+    globalBackgroundColor = backgroundColor;
+    globalTextColor = textColor;
+  }
+
+  function arrayShuffle( array ){
+    newArray = [];
+
+    while (array.length > 0) {
+      n = array.length;
+      k = Math.floor(Math.random() * n);
+
+      newArray.push(array[k]);
+      array.splice(k, 1);
+    }
+    array.push(...newArray);
+  }
+
+  function nowText(){
+    now = new Date();
+    Y = now.getFullYear().toString();
+    M = (now.getMonth() + 1).toString().padStart(2,"0");
+    D = now.getDate().toString().padStart(2,"0");
+    h = now.getHours().toString().padStart(2,"0");
+    m = now.getMinutes().toString().padStart(2,"0");
+    s = now.getSeconds().toString().padStart(2,"0");
+    return Y+M+D+"-"+h+m+s;
+
+  }
+</script>
+
+</body>
+</html>
